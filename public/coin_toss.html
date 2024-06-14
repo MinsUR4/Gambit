@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coin Toss Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+    }
+    #user-info {
+      font-size: 18px;
+    }
+    #money {
+      font-size: 18px;
+    }
+    main {
+      width: 80%;
+      margin-top: 20px;
+    }
+    button {
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #bet-form {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #bet-result {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    input {
+      margin: 5px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div id="user-info"></div>
+    <div id="money">Money: $0.00</div>
+  </header>
+
+  <main>
+    <div id="bet-form">
+      <input type="number" id="bet-amount" placeholder="Enter bet amount" />
+      <button id="place-bet">Place Bet</button>
+    </div>
+    <div id="bet-result"></div>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const userInfo = document.getElementById('user-info');
+      const moneyDisplay = document.getElementById('money');
+      const betResult = document.getElementById('bet-result');
+      const betAmountInput = document.getElementById('bet-amount');
+      const placeBetButton = document.getElementById('place-bet');
+      let currentBetChoice;
+
+      const updateMoneyDisplay = async () => {
+        try {
+          const response = await fetch('/get-user-info');
+          if (!response.ok) {
+            throw new Error('Failed to fetch user info');
+          }
+          const userData = await response.json();
+          if (userData && userData.money !== undefined) {
+            moneyDisplay.textContent = `Money: $${userData.money.toFixed(2)}`;
+          } else {
+            throw new Error('Invalid user data format');
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+          moneyDisplay.textContent = 'Money: N/A';
+        }
+      };
+
+      updateMoneyDisplay();
+      setInterval(updateMoneyDisplay, 1000);
+
+      try {
+        const response = await fetch('/get-user-info');
+        if (!response.ok) {
+          throw new Error('Failed to fetch user info');
+        }
+        const userData = await response.json();
+        userInfo.textContent = `User: ${userData.username}`;
+        moneyDisplay.textContent = `Money: $${userData.money.toFixed(2)}`;
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        userInfo.textContent = 'User: N/A';
+        moneyDisplay.textContent = 'Money: N/A';
+      }
+
+      const socket = io();
+      socket.emit('login', userInfo.textContent.replace('User: ', ''));
+
+      const normalizeChoice = (choice) => {
+        const normalized = choice.trim().toLowerCase();
+        if (normalized === 'h' || normalized === 'head' || normalized === 'heads') {
+          return 'heads';
+        }
+        if (normalized === 't' || normalized === 'tail' || normalized === 'tails') {
+          return 'tails';
+        }
+        return null;
+      };
+
+      const placeBet = () => {
+        const betAmount = parseFloat(betAmountInput.value);
+        if (isNaN(betAmount) || betAmount <= 0) {
+          alert('Please enter a valid bet amount.');
+          return;
+        }
+        const betChoiceRaw = prompt('Enter your choice: heads or tails');
+        const betChoice = normalizeChoice(betChoiceRaw);
+        if (!betChoice) {
+          alert('Invalid choice. Please enter "heads" or "tails" or their short forms.');
+          return;
+        }
+        currentBetChoice = betChoice;  // Store the current bet choice
+        console.log('Placing bet:', { username: userInfo.textContent.replace('User: ', ''), betAmount, betChoice });
+        socket.emit('place bet', { username: userInfo.textContent.replace('User: ', ''), betAmount, betChoice });
+      };
+
+      placeBetButton.addEventListener('click', placeBet);
+      betAmountInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          placeBet();
+        }
+      });
+
+      socket.on('bet result', ({ isHeads, newAmount, error }) => {
+        if (error) {
+          alert(error);
+        } else {
+          const resultMessage = (isHeads ? 'heads' : 'tails') === currentBetChoice ? 'You won!' : 'You lost!';
+          betResult.textContent = resultMessage;
+          moneyDisplay.textContent = `Money: $${newAmount.toFixed(2)}`;
+        }
+      });
+
+      socket.on('admin message', (message) => {
+        alert(message);
+      });
+    });
+  </script>
+
+</body>
+</html>
