@@ -98,9 +98,10 @@ app.post('/login', (req, res) => {
     req.session.username = username;
     res.json({ message: 'Login successful.' });
   } else {
-    res.json({ message: 'Invalid username or password.' });
+    res.status(401).json({ message: 'Invalid username or password.' });
   }
 });
+
 
 // Endpoint to increment user money
 app.post('/increment-money', (req, res) => {
@@ -294,4 +295,3 @@ function getTopPlayers(users, count) {
   
   return sortedPlayers.slice(0, count);
 }
-
