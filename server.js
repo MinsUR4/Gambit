@@ -20,7 +20,7 @@ let shopItems = [
 ];
 
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname))); // Serve static files from the root directory
 app.use(session({
   secret: 'your-secret-key', // Change this to a secure key
   resave: false,
@@ -29,13 +29,13 @@ app.use(session({
 
 // Serve the main HTML file
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Serve other HTML files based on session
 app.get('/dashboard', (req, res) => {
   if (req.session.username) {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
   } else {
     res.redirect('/');
   }
@@ -43,7 +43,7 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/coingame.html', (req, res) => {
   if (req.session.username) {
-    res.sendFile(path.join(__dirname, 'public', 'coingame.html'));
+    res.sendFile(path.join(__dirname, 'coingame.html'));
   } else {
     res.redirect('/');
   }
@@ -214,7 +214,7 @@ io.on('connection', (socket) => {
 
       let leaderboardMessage = `Top 50 Richest Players:\n`;
       for (let i = startIdx; i < Math.min(startIdx + 10, topPlayers.length); i++) {
-        leaderboardMessage += `${i + 1}. ${topPlayers[i].username} - $${topPlayers      .money.toFixed(2)}\n`;
+        leaderboardMessage += `${i + 1}. ${topPlayers[i].username} - $${topPlayers[i].money.toFixed(2)}\n`;
       }
 
       // Check if navigation arrows are needed
@@ -280,12 +280,11 @@ io.on('connection', (socket) => {
   });
 });
 
-
-
 // Start the server
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
 // Function to get top richest players
 function getTopPlayers(users, count) {
   const sortedPlayers = Object.entries(users)
@@ -294,4 +293,3 @@ function getTopPlayers(users, count) {
   
   return sortedPlayers.slice(0, count);
 }
-
