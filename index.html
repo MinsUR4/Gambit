@@ -86,7 +86,7 @@
       document.getElementById('signup-message').textContent = result.message;
     });
 
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   
   const username = document.getElementById('login-username').value;
@@ -111,6 +111,7 @@
     console.error('There was a problem with the fetch operation:', error);
   }
 });
+
   </script>
 
 </body>
