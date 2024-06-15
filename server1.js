@@ -1,12 +1,17 @@
-// server.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
+const cors = require('cors');
 
 dotenv.config();
 
 const app = express();
 app.use(bodyParser.json());
+
+// Configure CORS
+app.use(cors({
+    origin: 'https://egs-gambit.pages.dev' // Replace with your actual frontend URL
+}));
 
 const users = [];
 
