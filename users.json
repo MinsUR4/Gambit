@@ -1,0 +1,23 @@
+{
+    "lol": {
+      "password": "lol",
+      "money": 10000.530000000000038,
+      "inventory": [
+        "Leaderboard",
+        "Leaderboard",
+        "Leaderboard",
+        "Leaderboard",
+        "Leaderboard"
+      ]
+    },
+    "Test": {
+      "password": "Test",
+      "money": 0,
+      "inventory": []
+    },
+    "Test1": {
+      "password": "Test1",
+      "money": 0,
+      "inventory": []
+    }
+  }
